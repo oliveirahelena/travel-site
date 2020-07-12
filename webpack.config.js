@@ -33,7 +33,7 @@ let cssConfig = {
 };
 
 let sassConfig = {
-  test: /\.(sa|sc|c)ss$/,
+  test: /\.(sa|sc)ss$/,
   use: [
     "css-loader?url=false",
     { loader: "postcss-loader", options: { plugins: postCSSPlugins } },
