@@ -3,6 +3,7 @@ const path = require("path");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const ManifestPlugin = require("webpack-manifest-plugin");
 const fse = require("fs-extra");
 
 const postCSSPlugins = [
@@ -12,6 +13,7 @@ const postCSSPlugins = [
   require("postcss-nested"),
   require("postcss-hexrgba"),
   require("autoprefixer"),
+  require("postcss-color-function"),
 ];
 
 class RunAfterCompile {
@@ -27,6 +29,15 @@ let cssConfig = {
   use: [
     "css-loader?url=false",
     { loader: "postcss-loader", options: { plugins: postCSSPlugins } },
+  ],
+};
+
+let sassConfig = {
+  test: /\.(sa|sc|c)ss$/,
+  use: [
+    "css-loader?url=false",
+    { loader: "postcss-loader", options: { plugins: postCSSPlugins } },
+    'sass-loader',
   ],
 };
 
@@ -48,6 +59,7 @@ let config = {
   module: {
     rules: [
       cssConfig,
+      sassConfig,
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
@@ -64,6 +76,7 @@ let config = {
 
 if (currentTask == "dev") {
   cssConfig.use.unshift("style-loader");
+  sassConfig.use.unshift("style-loader");
   config.output = {
     filename: "bundled.js",
     path: path.resolve(__dirname, "app"),
@@ -82,6 +95,7 @@ if (currentTask == "dev") {
 
 if (currentTask == "build") {
   cssConfig.use.unshift(MiniCssExtractPlugin.loader);
+  sassConfig.use.unshift(MiniCssExtractPlugin.loader);
   postCSSPlugins.push(require("cssnano"));
   config.output = {
     filename: "[name].[chunkhash].js",
@@ -97,6 +111,7 @@ if (currentTask == "build") {
   config.plugins.push(
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({ filename: "styles.[chunkhash].css" }),
+    new ManifestPlugin({ publicPath: "" }),
     new RunAfterCompile()
   );
 }
